@@ -1,12 +1,18 @@
+require 'logger'
+require 'hubspot/connection'
+
 module Hubspot
   class Config
+    CONFIG_KEYS = [
+      :hapikey, :base_url, :portal_id, :logger, :access_token, :client_id,
+      :client_secret, :redirect_uri, :read_timeout, :open_timeout
+    ]
+    DEFAULT_LOGGER = Logger.new(nil)
+    DEFAULT_BASE_URL = "https://api.hubapi.com".freeze
+
     class << self
-      CONFIG_KEYS = [
-        :hapikey, :base_url, :portal_id, :logger, :access_token, :client_id,
-        :client_secret, :redirect_uri, :read_timeout, :open_timeout
-      ]
-      DEFAULT_LOGGER = Logger.new(nil)
-      DEFAULT_BASE_URL = "https://api.hubapi.com".freeze
+      attr_accessor *CONFIG_KEYS
+
       def configure(config)
         config.stringify_keys!
         @hapikey = config["hapikey"]
@@ -32,14 +38,23 @@ module Hubspot
 
       def reset!
         @hapikey = nil
-        @base_url = "https://api.hubapi.com"
+        @base_url = DEFAULT_BASE_URL
         @portal_id = nil
+        @logger = DEFAULT_LOGGER
+        @access_token = nil
+        Hubspot::Connection.headers({})
       end
 
       def ensure!(*params)
         params.each do |p|
           raise Hubspot::ConfigurationError.new("'#{p}' not configured") unless instance_variable_get "@#{p}"
         end
+      end
+
+      private
+
+      def authentication_uncertain?
+        access_token.present? ^ hapikey.present?
       end
     end
 
