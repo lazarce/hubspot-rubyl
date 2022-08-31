@@ -1,10 +1,12 @@
 module Hubspot
   class Config
     class << self
-      attr_reader :hapikey
-      attr_reader :base_url
-      attr_reader :portal_id
-
+      CONFIG_KEYS = [
+        :hapikey, :base_url, :portal_id, :logger, :access_token, :client_id,
+        :client_secret, :redirect_uri, :read_timeout, :open_timeout
+      ]
+      DEFAULT_LOGGER = Logger.new(nil)
+      DEFAULT_BASE_URL = "https://api.hubapi.com".freeze
       def configure(config)
         config.stringify_keys!
         @hapikey = config["hapikey"]
